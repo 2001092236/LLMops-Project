@@ -16,7 +16,7 @@ services:
     ports:
       - "8002:8000"
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_KEY: sk-3IqehGd2A8iAldf9VgG2CgHyGQtO9qPH #${OPENAI_API_KEY}
       MODEL_NAME: "gpt-4o-mini"
 
   gpt-4o:
@@ -25,7 +25,7 @@ services:
     ports:
       - "8003:8000"
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_KEY: sk-3IqehGd2A8iAldf9VgG2CgHyGQtO9qPH #${OPENAI_API_KEY}
       MODEL_NAME: "gpt-4o"
 
   gateway_service:
@@ -40,7 +40,7 @@ services:
       - postgres
       - rag_service
     environment:
-      ADMIN_KEY: ${ADMIN_KEY}
+      ADMIN_KEY: aYpVtQxRmGzLsBnCfDiKjUxWqHvNwYcFbXlPrVdTw #${ADMIN_KEY}
 
   postgres:
     image: postgres:13
