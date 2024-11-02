@@ -51,6 +51,7 @@ async def chat_proxy(chat_request: ChatRequest) -> ChatResponse:
 
     async with httpx.AsyncClient() as client:
         try:
+            # sends to OUR inference server the request
             response = await client.post(
                 f"http://{INFERENCE_ROUTING[chat_request.model]}:8000/chat/",
                 json={"message": chat_request.message, "chat_history": chat_history},

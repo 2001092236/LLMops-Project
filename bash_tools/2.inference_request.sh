@@ -11,3 +11,8 @@ curl -X 'POST' \
     }
   ]
 }'
+
+# we got to chat endpoint in the running service (localhost:8000) and made a post query
+# (post to the internet).
+# we used json-type of the content (3-rd line)
+# 

@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 # Set OpenAI API client and model name
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
+    base_url="https://api.proxyapi.ru/openai/v1",
 )
 model_name = os.getenv("MODEL_NAME")
 

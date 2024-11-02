@@ -31,9 +31,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         :rtype: Response
         """
         normalized_path = request.url.path.rstrip("/")
+        # For them we do not need to authorize.
         if normalized_path in ["/docs", "/openapi.json", "/signup"]:
             return await call_next(request)
 
+        #  Overwise we need.
         token = request.headers.get("Authorization")
         if not await check_token(token):
             increment_metric(403)
