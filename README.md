@@ -58,6 +58,12 @@ This project implements a gateway service integrated with an inference service u
 
 ## Installation for Development
 
+### 0. How to run?
+Simply paste:
+```bash
+sudo sh bash_tools/4.docker_compose.sh
+```
+
 ### 1. Clone the Repository
 
 ```bash
