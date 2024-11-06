@@ -100,6 +100,64 @@ export DATABASE_URL="postgresql://user:password@postgres/dbname"
 
 For development, you might also want to use a `.env` file to load these variables automatically.
 
+
+### PostgreSQL set up in docker
+When you run 
+```bash
+docker-compose build
+docker-compose up
+```
+docker creates a new instance of environment. And no database presented.
+So, you need to create a database when the container launched (for the first time) and load it (for the second, third, ... times).
+
+#### Step 1: add init_scripts
+In this directory `init-scripts/init_script.sql` AND `init-scripts/setup.sh` files are created with initialization instruction.
+
+`init-scripts/init_script.sql`:
+```sql
+-- Change password of a role
+ALTER ROLE postgres WITH PASSWORD 'postgres_password';
+
+-- Create the 'users' table
+CREATE TABLE users (
+    username VARCHAR PRIMARY KEY,
+    hashed_password VARCHAR,
+    api_key VARCHAR UNIQUE
+);
+
+-- Grant privileges to the user on the database
+GRANT ALL PRIVILEGES ON DATABASE users TO postgres;
+
+```
+
+`init-scripts/setup.sh`:
+```bash
+echo "\n\n################3#####\nDATABASE INITIALIZATION\n###################################"
+```
+
+They are **linked** to docker container via changing docker-compose.yaml:
+```yaml
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password # changed password in init_script.sql
+      POSTGRES_DB: users # name of table. DO NOT CHANGE!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d # +++ ADDED THIS
+```
+
+So, I added above $2$ scripts into related to databases section of docker `docker-entrypoint-initdb.d`. They will run (if it is the **first** run of docker), overwise they will not run.
+
+To remove all previous docker information (and make the above to run) you need to call:
+```bash
+sudo docker-compose down -v
+```
+
+
 For the code to be able to work with PostgreSQL, you need to do a little database management and
 attach to the DB's container and run this query in `psql`:
 

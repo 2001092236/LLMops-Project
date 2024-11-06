@@ -37,18 +37,22 @@ services:
       - postgres
     environment:
       ADMIN_KEY: aYpVtQxRmGzLsBnCfDiKjUxWqHvNwYcFbXlPrVdTw #${ADMIN_KEY}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password # changed password in init_script.sql
+      POSTGRES_DB: users # name of table. DO NOT CHANGE!
 
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password # changed password in init_script.sql
+      POSTGRES_DB: users # name of table. DO NOT CHANGE!
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      
 volumes:
   postgres_data:
     driver: local
