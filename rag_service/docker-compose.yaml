@@ -1,3 +1,5 @@
+version: '3.7'
+
 services:
   embed:
     container_name: embed_service
@@ -14,7 +16,7 @@ services:
   rag_service:
     container_name: rag_service
     build:
-      context: .
+      context: rag_service/
     depends_on:
       - embed
       - rerank

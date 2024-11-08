@@ -1,8 +1,10 @@
-version: '3.8'
+version: '3.7'
 
-include:
-  - path:
-    - rag_service/docker-compose.yaml
+# include:
+#   - path:
+#     - rag_service/docker-compose.yaml
+
+
 services:
   redis:
     image: redis:alpine
@@ -41,17 +43,21 @@ services:
       - rag_service
     environment:
       ADMIN_KEY: aYpVtQxRmGzLsBnCfDiKjUxWqHvNwYcFbXlPrVdTw #${ADMIN_KEY}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password # changed password in init_script.sql
+      POSTGRES_DB: users # name of table. DO NOT CHANGE!
 
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password # changed password in init_script.sql
+      POSTGRES_DB: users # name of table. DO NOT CHANGE!
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
   rag_gradio_service:
     build: ./rag_gradio_service
