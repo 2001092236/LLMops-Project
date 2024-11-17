@@ -54,7 +54,7 @@ async def generate(prompt: str, user_id: str) -> str:
     return resp_message
 
 
-async def bot(history: list[list], use_reranker: bool, request: gr.Request):
+async def bot(history: list[list], use_reranker: bool, top_k_retrieve: int, top_k_rank: int, model: str, request: gr.Request):
     if not history or not history[-1][0]:
         raise gr.Warning("The request is empty, please type something in")
 
@@ -64,7 +64,7 @@ async def bot(history: list[list], use_reranker: bool, request: gr.Request):
         try:
             response = await client.post(
                 "http://rag_service:8000/prompt_w_context/",
-                json={"query": query, "use_reranker": use_reranker},
+                json={"query": query, "use_reranker": use_reranker, "top_k_retrieve": top_k_retrieve, "top_k_rank": top_k_rank, "model": model},
                 timeout=httpx.Timeout(60.0),
             )
         except httpx.ConnectError:
@@ -131,17 +131,20 @@ with gr.Blocks() as demo:
         txt_btn = gr.Button(value="Submit text", scale=1)
 
     cb = gr.Checkbox(label="Use reranker", info="Rerank after retrieval?")
+    top_k_retrieve = gr.Number(label="Top k retrieve", value=5, precision=0, info="Number of top results to retrieve (before reranking)")
+    top_k_rank = gr.Number(label="Top k rank", value=3, precision=0, info="Number of resilts to rank")
+    choice_field = gr.Radio(label="Choose an option", choices=["gpt-4o-mini", "gpt-4o"], value="gpt-4o-mini", info="Select either 'gpt-4o-mini' or 'gpt-4o'")
 
     prompt_html = gr.HTML()
     # Turn off interactivity while generating if you click
     txt_msg = txt_btn.click(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
-        bot, [chatbot, cb], [chatbot, prompt_html]
+        bot, [chatbot, cb, top_k_retrieve, top_k_rank, choice_field], [chatbot, prompt_html]
     )
     # Turn it back on
     txt_msg.then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
     # Turn off interactivity while generating if you hit enter
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
-        bot, [chatbot, cb], [chatbot, prompt_html]
+        bot, [chatbot, cb, top_k_retrieve, top_k_rank, choice_field], [chatbot, prompt_html]
     )
     # Turn it back on
     txt_msg.then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)

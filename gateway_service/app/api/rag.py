@@ -67,6 +67,27 @@ async def add_to_db(add_to_db_request: AddToDBRequest):
         )
 
 
+@router.post("/add_to_rag_db_big/", dependencies=[Depends(verify_token)])
+async def add_to_db(add_to_db_request: AddToDBRequest):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                "http://rag_service:8000/add_to_rag_db_big/",
+                json=add_to_db_request.model_dump(),
+                timeout=httpx.Timeout(60.0),
+            )
+        except httpx.ConnectError:
+            raise HTTPException(
+                status_code=500, detail="Failed to connect to RAG service"
+            )
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code, detail=response.json()["detail"]
+        )
+
+
+
 @router.get("/reindex/", dependencies=[Depends(verify_token)])
 async def reindex_proxy():
     async with httpx.AsyncClient() as client:

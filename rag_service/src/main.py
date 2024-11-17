@@ -7,6 +7,8 @@ from config import EMBED_URL, LANCE_TABLE, PROMPT_TOKEN_LIMIT, RAG_PROMPT
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from semantic_search import rerank, retrieve
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+import asyncio
 
 app = FastAPI()
 # https://github.com/openai/tiktoken/blob/c0ba74c238d18b4824c25f3c27fc8698055b9a76/tiktoken/model.py#L20
@@ -96,6 +98,7 @@ async def add_to_db(add_to_db_request: AddToDBRequest):
     :param add_to_db_request: text to add to a DB
     :raises HTTPException: if embedding service is unavailable
     """
+    # Step 1: vectorization
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -113,9 +116,67 @@ async def add_to_db(add_to_db_request: AddToDBRequest):
             status_code=response.status_code, detail="TEI service error"
         )
     vector = json.loads(response.content)[0]
-
+    
+    # Step 2: adding into table
     data = [{"vector": vector, "text": add_to_db_request.text}]
     LANCE_TABLE.add(data=data)
+
+
+
+
+def split_text_into_chunks(text: str, 
+                           max_len: int = 1024, 
+                           overlap_len: int = 42):
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=max_len,
+        chunk_overlap=overlap_len,
+        length_function=len,
+        is_separator_regex=False,
+    )
+
+    chunks = [chunk.page_content for chunk in text_splitter.create_documents([text])]
+    return chunks    
+
+
+@app.post("/add_to_rag_db_big/")
+async def add_to_db_big(add_to_db_request: AddToDBRequest):
+    """
+    Adds a single text document to a vector DB.
+
+    :param add_to_db_request: text to add to a DB
+    :raises HTTPException: if embedding service is unavailable
+    """
+    # Step 0: split the text into chunks
+    chunks = split_text_into_chunks(add_to_db_request.text)
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # Create a list of tasks to call add_to_db 1000 times
+
+            tasks = [client.post("http://localhost:8000/add_to_rag_db/", json={"text": chunk}) for chunk in chunks]
+
+            # Run all tasks concurrently
+            responses = await asyncio.gather(*tasks)
+
+        except httpx.ConnectError:
+            raise HTTPException(
+                status_code=500, detail="Failed to connect to TEI service"
+            )
+
+    for response in responses:
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code, detail="TEI service error"
+            )
+
+    # # Step 1: delegaint task to other function 
+    # for chunk in chunks:
+    #     add_to_db_chunk = AddToDBRequest()
+    #     add_to_db_chunk.text = chunk
+
+    #     await add_to_db(add_to_db_chunk)
+
 
 
 @app.get("/reindex/")
