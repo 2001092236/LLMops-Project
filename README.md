@@ -284,9 +284,12 @@ This script installs Poetry globally on your system. Once installed, you can use
 
 - **Adding a Dependency**: Add a new dependency to your project.
   ```bash
-  poetry add <package-name>
+  poetry add <package-name> --verbose
   ```
-
+   Then lock added dependency:
+  ```bash
+   poetry lock
+  ```
 - **Running Your Project**: Run your project within the Poetry environment.
   ```bash
   poetry run python <script.py>
