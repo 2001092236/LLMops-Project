@@ -15,9 +15,12 @@ logger = logging.getLogger(__name__)
 
 # Set OpenAI API client and model name
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-    base_url="https://api.proxyapi.ru/openai/v1",
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url=os.getenv("BASE_URL") # "https://api.proxyapi.ru/openai/v1" OR "https://api.studio.nebius.ai/v1/"
 )
+
+# in the docker several instances will be activated
+# and each of them will have a separate MODEL_NAME
 model_name = os.getenv("MODEL_NAME")
 
 
