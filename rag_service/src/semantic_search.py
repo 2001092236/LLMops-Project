@@ -26,7 +26,7 @@ async def retrieve(query: str, k: int) -> list[str]:
             response = await client.post(
                 EMBED_URL,
                 json={"inputs": query, "truncate": True},
-                timeout=httpx.Timeout(60.0),
+                timeout=httpx.Timeout(300.0),
             )
         except httpx.ConnectError:
             raise HTTPException(
@@ -68,7 +68,7 @@ async def rerank(query: str, documents: list[str], k: int) -> list[str]:
                         "texts": documents[i * BATCH_SIZE : (i + 1) * BATCH_SIZE],
                         "truncate": True,
                     },
-                    timeout=httpx.Timeout(60.0),
+                    timeout=httpx.Timeout(300.0),
                 )
             except httpx.ConnectError:
                 raise HTTPException(

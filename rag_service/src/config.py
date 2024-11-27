@@ -13,7 +13,7 @@ NPROBES = 40
 REFINE_FACTOR = 50
 BATCH_SIZE = 4
 
-config = AutoConfig.from_pretrained(os.getenv("EMB_MODEL"))
+config = AutoConfig.from_pretrained(os.getenv("EMB_MODEL"), trust_remote_code=True)
 emb_dim = config.hidden_size
 schema = pa.schema(
     [

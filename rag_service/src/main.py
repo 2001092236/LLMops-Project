@@ -7,8 +7,8 @@ from config import EMBED_URL, LANCE_TABLE, PROMPT_TOKEN_LIMIT, RAG_PROMPT
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from semantic_search import rerank, retrieve
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 import asyncio
+from utils import split_text_into_chunks
 
 app = FastAPI()
 # https://github.com/openai/tiktoken/blob/c0ba74c238d18b4824c25f3c27fc8698055b9a76/tiktoken/model.py#L20
@@ -123,22 +123,6 @@ async def add_to_db(add_to_db_request: AddToDBRequest):
 
 
 
-
-def split_text_into_chunks(text: str, 
-                           max_len: int = 1024, 
-                           overlap_len: int = 42):
-    
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=max_len,
-        chunk_overlap=overlap_len,
-        length_function=len,
-        is_separator_regex=False,
-    )
-
-    chunks = [chunk.page_content for chunk in text_splitter.create_documents([text])]
-    return chunks    
-
-
 @app.post("/add_to_rag_db_big/")
 async def add_to_db_big(add_to_db_request: AddToDBRequest):
     """
@@ -150,7 +134,7 @@ async def add_to_db_big(add_to_db_request: AddToDBRequest):
     # Step 0: split the text into chunks
     chunks = split_text_into_chunks(add_to_db_request.text)
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=60) as client:
         try:
             # Create a list of tasks to call add_to_db 1000 times
 

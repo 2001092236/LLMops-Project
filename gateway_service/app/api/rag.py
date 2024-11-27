@@ -22,7 +22,7 @@ async def rag(rag_request: RAGRequest) -> ChatResponse:
             rag_response = await client.post(
                 "http://rag_service:8000/prompt_w_context/",
                 json=rag_request.model_dump(),
-                timeout=httpx.Timeout(60.0),
+                timeout=httpx.Timeout(300.0),
             )
         except httpx.ConnectError:
             raise HTTPException(
